@@ -538,6 +538,8 @@ again:
 
   Newxz( share, 1, Share );
 
+  printf("**SEM ID FROM C: %ld\n", semid);
+
   share->key = key;
   share->next_key = key + 1;
   share->flags = flags;
@@ -567,7 +569,8 @@ again:
 
   share->shm_state = share->head->shmaddr->shm_state;
   share->version = share->head->shmaddr->version;
-
+//  share->shm_id = share->head->shmid;
+   
   /* determine the true length of the segment.  this may disagree *
    * with what the user requested, since shmget() calls will      *
    * succeed if the requested size <= the existing size           */
@@ -593,9 +596,20 @@ sharelite_version( Share * share ) {
 }
 
 int
+sharelite_shm_id( Share * share ) {
+  return share->head->shmid;
+}
+int
+sharelite_sem_id( Share * share ) {
+  return share->semid;
+}
+
+int
 destroy_share( Share * share, int rmid ) {
   int semid;
   SEMUN semctl_arg;
+
+  return 0;
 
   if ( !( share->lock & LOCK_EX ) ) {
     if ( share->lock & LOCK_SH ) {

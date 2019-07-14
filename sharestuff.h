@@ -60,6 +60,8 @@ typedef struct {
   Node *tail;
   unsigned int shm_state;
   unsigned int version;
+  int shm_id;
+  int sem_id;
 } Share;
 
 /* prototypes */
@@ -72,3 +74,5 @@ int sharelite_lock( Share * share, int flags );
 int sharelite_unlock( Share * share );
 int sharelite_num_segments( Share * share );
 unsigned int sharelite_version( Share * share );
+int sharelite_shm_id( Share * share );
+int sharelite_sem_id( Share * share );

@@ -1,0 +1,1 @@
+- separate out the shm and sem remove functions from destroy()

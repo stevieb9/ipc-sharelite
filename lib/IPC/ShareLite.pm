@@ -2,7 +2,9 @@ package IPC::ShareLite;
 
 use strict;
 use warnings;
+
 use Carp;
+use Data::Dumper;
 
 =head1 NAME
 
@@ -170,7 +172,7 @@ sub new {
   my $args = $class->_rearrange_args(
     [
       qw( key create destroy exclusive mode
-       flags size glue )
+       flags size glue data_type )
     ],
     \@_
   );
@@ -219,6 +221,10 @@ sub _initialize {
   $self->{flags} = $args->{flags} || 0;
   $self->{mode}  = $args->{mode}  || 0666 unless $args->{flags};
   $self->{size}  = $args->{size}  || 0;
+
+  $self->{data_type} = $args->{data_type};
+
+  print "MODE: $self->{mode}\n";
 
   $self->{flags} = $self->{flags} | $self->{exclusive} | $self->{create}
    | $self->{mode};
@@ -405,6 +411,9 @@ Get a share's key.
 
 =cut
 
+
+sub shmid { sharelite_shm_id( shift->{share} ); }
+sub semid { sharelite_sem_id( shift->{share} ); }
 sub key { shift->{key} }
 
 =head2 C<< create >>
