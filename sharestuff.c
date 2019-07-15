@@ -610,11 +610,9 @@ remove_share (int shmid, int semid, int rmid){
 
   if ( rmid ) {
    if ( shmctl( shmid, IPC_RMID, 0 )){
-        printf("shmctl: failed to remove ID: %d\n", shmid);;
       return -1;
     }
     if ( semctl( semid, 0, IPC_RMID, 0 ) < 0 ) {
-        printf("semctl: failed to remove ID: %d\n", semid);;
       return -1;
     }
   }
