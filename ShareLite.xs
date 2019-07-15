@@ -343,4 +343,7 @@ int
 sharelite_sem_id(Share *share)
 
 int
+remove_share(int shmid, int semid, int rmid)
+
+int
 sharelite_num_segments(Share *share)

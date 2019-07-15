@@ -171,8 +171,18 @@ sub new {
 
   my $args = $class->_rearrange_args(
     [
-      qw( key create destroy exclusive mode
-       flags size glue data_type )
+      qw(
+          key
+          create
+          destroy
+          exclusive
+          mode
+          flags
+          size
+          glue
+          data_type
+          persist
+      )
     ],
     \@_
   );
@@ -223,15 +233,15 @@ sub _initialize {
   $self->{size}  = $args->{size}  || 0;
 
   $self->{data_type} = $args->{data_type};
-
-  print "MODE: $self->{mode}\n";
+  $self->{persist} = $args->{persist} ||= 0;
 
   $self->{flags} = $self->{flags} | $self->{exclusive} | $self->{create}
    | $self->{mode};
 
   $self->{share}
    = new_share( $self->{key}, $self->{size}, $self->{flags} )
-   or croak "Failed to create share";
+   or croak "ERROR: Failed to create share '$self->{key}'. " .
+            "Are you using exclusive but already have a segment in use?\n";
 
   return 1;
 }
@@ -362,9 +372,10 @@ Or, just use the flock constants available in the Fcntl module.
 =cut
 
 sub lock {
-  my $self = shift;
+  my ($self, $flags) = @_;
+  $flags //= 0;
 
-  my $response = sharelite_lock( $self->{share}, shift() );
+  my $response = sharelite_lock( $self->{share}, $flags );
   return undef if ( $response == -1 );
   return 0 if ( $response == 1 );    # operation failed due to LOCK_NB
   return 1;
@@ -482,6 +493,14 @@ Get or set the share's destroy flag.
 
 =cut
 
+sub erase_share {
+    shift; # throw away class/object
+    my ($shmid, $semid, $rmid) = @_;
+
+    my $ret = remove_share($shmid, $semid, $rmid);
+
+    return $ret;
+}
 sub destroy {
   my $self = shift;
   $self->{destroy} = shift if @_;
@@ -491,8 +510,9 @@ sub destroy {
 sub DESTROY {
   my $self = shift;
 
-  destroy_share( $self->{share}, $self->{destroy} )
-   if $self->{share};
+  if (! $self->{persist}) {
+      destroy_share($self->{share}, $self->{destroy}) if $self->{share};
+  }
 }
 
 sub AUTOLOAD {

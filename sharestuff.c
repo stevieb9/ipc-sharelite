@@ -313,13 +313,16 @@ _remove_segments( int shmid ) {
     if ( ( shmaddr =
            ( Header * ) shmat( shmid, ( char * ) 0,
                                0 ) ) == ( Header * ) - 1 ) {
+        printf("rmsegs: HEADER BAD\n");
       return -1;
     }
     next_shmid = shmaddr->next_shmid;
     if ( shmdt( ( char * ) shmaddr ) < 0 ) {
+        printf("rmsegs: SHMDT BAD\n");
       return -1;
     }
     if ( shmctl( shmid, IPC_RMID, ( struct shmid_ds * ) 0 ) < 0 ) {
+        printf("rmsegs: SHCTL BAD\n");
       return -1;
     }
     shmid = next_shmid;
@@ -538,8 +541,6 @@ again:
 
   Newxz( share, 1, Share );
 
-  printf("**SEM ID FROM C: %ld\n", semid);
-
   share->key = key;
   share->next_key = key + 1;
   share->flags = flags;
@@ -605,11 +606,25 @@ sharelite_sem_id( Share * share ) {
 }
 
 int
+remove_share (int shmid, int semid, int rmid){
+
+  if ( rmid ) {
+   if ( shmctl( shmid, IPC_RMID, 0 )){
+        printf("shmctl: failed to remove ID: %d\n", shmid);;
+      return -1;
+    }
+    if ( semctl( semid, 0, IPC_RMID, 0 ) < 0 ) {
+        printf("semctl: failed to remove ID: %d\n", semid);;
+      return -1;
+    }
+  }
+
+  return 0;
+}
+int
 destroy_share( Share * share, int rmid ) {
   int semid;
   SEMUN semctl_arg;
-
-  return 0;
 
   if ( !( share->lock & LOCK_EX ) ) {
     if ( share->lock & LOCK_SH ) {
